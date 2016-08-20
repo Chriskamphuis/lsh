@@ -1,7 +1,7 @@
 class lsh:
 
     def __init__(self):
-        print('')
+        print("")
 
     def shingle(self, document, w=3, token='char'):
         shingle_list = []
@@ -48,3 +48,6 @@ class lsh:
                 print('invalid token')
                 exit(0)
         return set(shingle_list)
+
+    def jaccard(self, set1, set2):
+        return float(len(set1.intersection(set2)))/float(len(set1.union(set2)))
