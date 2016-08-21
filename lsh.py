@@ -1,10 +1,19 @@
+import numpy as np  # Numpy is used to have more control over the datatypes.
+
+
 class lsh:
 
     def __init__(self):
         print("")
 
-    def shingle(self, document, w=3, token='char'):
-        shingle_list = []
+    '''
+    Creates a shingle set of a text document.
+    Uses read(1) to extract char from textdocuments, so it extracts bytes which
+    means the shingles are actually created with the bytes. Which might be
+    troublesome if you use special characters.
+    '''
+    def shingle(self, document, w=5, token='char'):
+        shingle_list = np.array([])
         buf = ['' for i in range(w)]
         with open(document, 'r') as doc:
             if token is 'char':
@@ -22,7 +31,9 @@ class lsh:
                             shingle = ''
                             for t in buf:
                                 shingle += t
-                            shingle_list.append(shingle)
+                            shinglehash = hash(shingle) % (2**32)
+                            shingle32 = np.uint32(shinglehash)
+                            shingle_list = np.append(shingle_list, shingle32)
             elif token is 'word':
                 word_buf = ''
                 while True:
@@ -41,13 +52,25 @@ class lsh:
                                 shingle += t
                                 shingle += ' '
                             shingle = shingle[0:-1]
-                            shingle_list.append(shingle)
+                            shinglehash = hash(shingle) % (2**32)
+                            shingle32 = np.uint32(shinglehash)
+                            shingle_list = np.append(shingle_list, shingle32)
                         word_buf = ''
 
             else:
                 print('invalid token')
                 exit(0)
-        return set(shingle_list)
+        return np.unique(shingle_list)
 
+    '''
+    Jaccard function for determining similarity between sets.
+    '''
     def jaccard(self, set1, set2):
-        return float(len(set1.intersection(set2)))/float(len(set1.union(set2)))
+        intersect = np.intersect1d(set1, set2)
+        union = np.union1d(set1, set2)
+        return float(len(intersect))/float(len(union))
+
+a = lsh()
+b = a.shingle("test.txt")
+c = a.shingle("test2.txt")
+print(a.jaccard(b, c))
